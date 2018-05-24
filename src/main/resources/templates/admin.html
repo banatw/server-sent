@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+    <a href="/logout">Logout</a><br>
+    <table>
+        <thead>
+            <tr>
+                <th>Nama</th>
+                <th>Password</th>
+                <th>Real Name</th>
+                <th>action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{#users}}
+            <tr>
+                <td>{{username}}</td>
+                <td>{{password}}</td>
+                <td>{{realName}}</td>
+                <td><a href="/form?u={{username}}">edit</a></td>
+            </tr>
+            {{/users}}
+        </tbody>
+    </table>
+</body>
+</html>

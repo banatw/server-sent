@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+    <form method="post" action="/simpan">
+        {{#userViewModel}}
+        username1 <input type="text" name="username1" {{#username1}} value="{{username1}}" {{/username1}}><br>
+        password <input type="password" name="password" {{#password}} value="{{password}}" {{/password}}><br>
+        role <input type="text" name="role" {{#role}} value="{{role}}" {{/role}}><br>
+        realname <input type="text" name="realName" {{#realName}} value="{{realName}}" {{/realName}}><br>
+        {{/userViewModel}}
+        <input type="submit" value="Simpan"><a href="/admin">Kembali</a>
+    </form>
+</body>
+</html>
