@@ -12,8 +12,13 @@ import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.http.MediaType;
+import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.messaging.simp.config.MessageBrokerRegistry;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -30,8 +35,13 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyEmitter;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+import org.springframework.web.socket.config.annotation.AbstractWebSocketMessageBrokerConfigurer;
+import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
+import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 
 import java.io.IOException;
+import java.security.Principal;
+import java.util.Map;
 
 @SpringBootApplication
 @EntityScan("com.entity")
@@ -55,10 +65,17 @@ public class ServerSentApplication {
 			userRepo.save(user);
 
             user = new User();
-            user.setUsername("user");
+            user.setUsername("user1");
             user.setPassword("pwd");
             user.setRole("ROLE_USER");
-            user.setRealName("tes");
+            user.setRealName("tes1");
+            userRepo.save(user);
+
+            user = new User();
+            user.setUsername("user2");
+            user.setPassword("pwd");
+            user.setRole("ROLE_USER");
+            user.setRealName("tes2");
             userRepo.save(user);
 		};
 	}
@@ -118,6 +135,9 @@ public class ServerSentApplication {
 		@Autowired
 		private ApplicationEventPublisher applicationEventPublisher;
 
+		@Autowired
+		private SimpMessagingTemplate template;
+
 		private String nama=null;
 
 		@GetMapping("/user")
@@ -147,7 +167,8 @@ public class ServerSentApplication {
 		}
 
 		@PostMapping("/simpan")
-		public String simpan(UserViewModel userViewModel, PushBuilder pushBuilder) {
+		public String simpan(UserViewModel userViewModel,Principal principal) {
+			//UserDetails userDetails = (org.springframework.security.core.userdetails.User) authentication.getPrincipal();
 			User user = new User();
 			user.setUsername(userViewModel.getUsername1());
 			user.setPassword(userViewModel.getPassword());
@@ -155,8 +176,10 @@ public class ServerSentApplication {
 			user.setRealName(userViewModel.getRealName());
 			userRepo.save(user);
             nama = user.getUsername();
+            template.convertAndSendToUser(principal.getName(),"/queue/message","ok");
 			return "redirect:/admin";
 		}
+
 
 		@GetMapping("/check")
 		public ResponseBodyEmitter responseBodyEmitter(Authentication authentication) {
@@ -174,6 +197,23 @@ public class ServerSentApplication {
             emitter.complete();
 		    return emitter;
         }
+	}
+
+	@Configuration
+	@EnableWebSocketMessageBroker
+	public class WebSocketConfig extends AbstractWebSocketMessageBrokerConfigurer {
+
+		@Override
+		public void registerStompEndpoints(StompEndpointRegistry stompEndpointRegistry) {
+			stompEndpointRegistry.addEndpoint("/stomp").withSockJS();
+		}
+
+		@Override
+		public void configureMessageBroker(MessageBrokerRegistry registry) {
+			registry.enableSimpleBroker("/topic","/queue");
+			//registry.setApplicationDestinationPrefixes("/app");
+			//registry.setUserDestinationPrefix("/user");
+		}
 	}
 
 }
