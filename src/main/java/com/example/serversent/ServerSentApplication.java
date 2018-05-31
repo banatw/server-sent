@@ -167,7 +167,7 @@ public class ServerSentApplication {
 		}
 
 		@PostMapping("/simpan")
-		public String simpan(UserViewModel userViewModel,Principal principal) {
+		public String simpan(UserViewModel userViewModel) {
 			//UserDetails userDetails = (org.springframework.security.core.userdetails.User) authentication.getPrincipal();
 			User user = new User();
 			user.setUsername(userViewModel.getUsername1());
@@ -176,7 +176,7 @@ public class ServerSentApplication {
 			user.setRealName(userViewModel.getRealName());
 			userRepo.save(user);
             nama = user.getUsername();
-            template.convertAndSendToUser(principal.getName(),"/queue/message","ok");
+            template.convertAndSendToUser(nama,"/queue/message","ok");
 			return "redirect:/admin";
 		}
 
@@ -210,9 +210,9 @@ public class ServerSentApplication {
 
 		@Override
 		public void configureMessageBroker(MessageBrokerRegistry registry) {
-			registry.enableSimpleBroker("/topic","/queue");
-			//registry.setApplicationDestinationPrefixes("/app");
-			//registry.setUserDestinationPrefix("/user");
+			registry.enableSimpleBroker("/queue");
+			registry.setApplicationDestinationPrefixes("/app");
+			registry.setUserDestinationPrefix("/user");
 		}
 	}
 
