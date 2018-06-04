@@ -62,6 +62,7 @@ public class ServerSentApplication {
 			user.setPassword("pwd");
 			user.setRole("ROLE_ADMIN");
 			user.setRealName("syabana");
+			user.setEnabled(true);
 			userRepo.save(user);
 
             user = new User();
@@ -69,6 +70,7 @@ public class ServerSentApplication {
             user.setPassword("pwd");
             user.setRole("ROLE_USER");
             user.setRealName("tes1");
+			user.setEnabled(true);
             userRepo.save(user);
 
             user = new User();
@@ -76,6 +78,7 @@ public class ServerSentApplication {
             user.setPassword("pwd");
             user.setRole("ROLE_USER");
             user.setRealName("tes2");
+			user.setEnabled(true);
             userRepo.save(user);
 		};
 	}
@@ -84,7 +87,7 @@ public class ServerSentApplication {
 
 		@Override
 		public UserDetails loadUserByUsername(String s) throws UsernameNotFoundException {
-			User user = userRepo.findOne(s);
+			User user = userRepo.findByUsernameAndEnabled(s,true);
 			org.springframework.security.core.userdetails.User user1 = new org.springframework.security.core.userdetails.User(
 					user.getUsername(),
 					user.getPassword(),
@@ -116,20 +119,6 @@ public class ServerSentApplication {
 		}
 	}
 
-	public class MyCustomEvent extends ApplicationEvent {
-
-		private String message;
-
-		public MyCustomEvent(Object source,String message) {
-			super(source);
-			this.message = message;
-		}
-
-		public String getMessage() {
-			return message;
-		}
-	}
-
 	@Controller
 	public class MyController {
 		@Autowired
@@ -137,8 +126,6 @@ public class ServerSentApplication {
 
 		@Autowired
 		private SimpMessagingTemplate template;
-
-		private String nama=null;
 
 		@GetMapping("/user")
 		public String showIndex(Model model, Authentication authentication) {
@@ -162,8 +149,13 @@ public class ServerSentApplication {
 			userViewModel.setPassword(user.getPassword());
 			userViewModel.setRole(user.getRole());
 			userViewModel.setRealName(user.getRealName());
+			userViewModel.setEnabled(user.isEnabled()?true:false);
 			model.addAttribute(userViewModel);
 			return "user_form";
+		}
+		@GetMapping("/")
+		public String showRegForm() {
+			return "user_reg";
 		}
 
 		@PostMapping("/simpan")
@@ -174,29 +166,29 @@ public class ServerSentApplication {
 			user.setPassword(userViewModel.getPassword());
 			user.setRole(userViewModel.getRole());
 			user.setRealName(userViewModel.getRealName());
+			user.setEnabled(userViewModel.isEnabled());
 			userRepo.save(user);
-            nama = user.getUsername();
-            template.convertAndSendToUser(nama,"/queue/message","ok");
+            template.convertAndSendToUser(user.getUsername(),"/queue/message","ok");
 			return "redirect:/admin";
 		}
 
+		@GetMapping("/thanks")
+		public String showThanks() {
+			return "thanks";
+		}
 
-		@GetMapping("/check")
-		public ResponseBodyEmitter responseBodyEmitter(Authentication authentication) {
-            UserDetails user = (UserDetails) authentication.getPrincipal();
-            String username = user.getUsername();
-		    SseEmitter emitter = new SseEmitter();
-		    if(nama!=null && nama.equals(username) ) {
-                try {
-                    emitter.send(nama + " berhasil diedit",MediaType.TEXT_PLAIN);
-                    nama=null;
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-            emitter.complete();
-		    return emitter;
-        }
+		@PostMapping("/simpan_reg")
+		public String simpanReg(UserViewModel userViewModel) {
+			User user = new User();
+			user.setUsername(userViewModel.getUsername1());
+			user.setPassword(userViewModel.getPassword());
+			user.setRole("ROLE_USER");
+			user.setRealName(userViewModel.getRealName());
+			user.setEnabled(false);
+			userRepo.save(user);
+			template.convertAndSendToUser("admin","/queue/message","ada permintaan..silahkan tekan F5");
+			return "redirect:/thanks";
+		}
 	}
 
 	@Configuration

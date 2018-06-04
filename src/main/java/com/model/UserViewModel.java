@@ -5,6 +5,7 @@ public class UserViewModel {
     private String password;
     private String role;
     private String realName;
+    private boolean enabled;
 
     public UserViewModel() {
     }
@@ -39,5 +40,13 @@ public class UserViewModel {
 
     public void setRealName(String realName) {
         this.realName = realName;
+    }
+
+    public boolean isEnabled() {
+        return enabled;
+    }
+
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
     }
 }

@@ -3,6 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <title>Title</title>
+    <script type="text/javascript" src="//cdn.jsdelivr.net/jquery/1.11.2/jquery.min.js"></script>
+    <script type="text/javascript" src="//cdn.jsdelivr.net/sockjs/0.3.4/sockjs.min.js"></script>
+    <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
 </head>
 <body>
     <a href="/logout">Logout</a><br>
@@ -26,5 +29,40 @@
             {{/users}}
         </tbody>
     </table>
+    <script type="text/javascript">
+		$(document).ready(function() {
+			var messageList = $("#messages");
+			// defined a connection to a new socket endpoint
+			var socket = new SockJS('/stomp');
+			var stompClient = Stomp.over(socket);
+            stompClient.connect({ }, function(frame) {
+				// subscribe to the /topic/message endpoint
+				stompClient.subscribe("/user/queue/message", function(data) {
+					var message = data.body;
+					//messageList.append("<li>" + message + "</li>");
+					//var notification = new Notification(message);
+					if (!("Notification" in window)) {
+                        alert("This browser does not support desktop notification");
+                    }
+
+                    // Let's check whether notification permissions have already been granted
+                    else if (Notification.permission === "granted") {
+                       // If it's okay let's create a notification
+                       var notification = new Notification(message);
+                    }
+
+                      // Otherwise, we need to ask the user for permission
+                    else if (Notification.permission !== "denied") {
+                        Notification.requestPermission(function (permission) {
+                        // If the user accepts, let's create a notification
+                            if (permission === "granted") {
+                                var notification = new Notification(message);
+                            }
+                        });
+                    }
+		        });
+            });
+	    });
+	</script>
 </body>
 </html>

@@ -11,6 +11,7 @@
         password <input type="password" name="password" {{#password}} value="{{password}}" {{/password}}><br>
         role <input type="text" name="role" {{#role}} value="{{role}}" {{/role}}><br>
         realname <input type="text" name="realName" {{#realName}} value="{{realName}}" {{/realName}}><br>
+        enable <input type="checkbox" name="enabled" {{#enabled}}checked{{/enabled}}><br>
         {{/userViewModel}}
         <input type="submit" value="Simpan"><a href="/admin">Kembali</a>
     </form>
